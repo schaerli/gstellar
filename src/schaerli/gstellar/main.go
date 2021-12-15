@@ -1,18 +1,22 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
-
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
+
+type DbCredentials struct {
+	SuperUserName string
+	SuperUserPass string
+}
 
 func main() {
 
-	if _, err := os.Stat("gstellar.yml"); err == nil {
-		// path/to/whatever exists
+	if _, err := os.Stat("gstellar.json"); err == nil {
+		fmt.Println("yaml here")
 
 	} else if errors.Is(err, os.ErrNotExist) {
 		fmt.Println("Enter PG Superuser name: ")
@@ -23,23 +27,16 @@ func main() {
 		var superUserPass string
 		fmt.Scanln(&superUserPass)
 
+		yml := DbCredentials{SuperUserName: superUserName, SuperUserPass: superUserPass}
+
+		file, _ := json.MarshalIndent(yml, "", " ")
+		ioutil.WriteFile("gstellar.json", file, 0644)
+
 	} else {
-		// Schrodinger: file may or may not exist. See err for details.
-
-		// Therefore, do *NOT* use !os.IsNotExist(err) to test for file existence
-
+		fmt.Println("else here")
 	}
 
-	fmt.Println("Enter PG Superuser name: ")
-	var superUserName string
-	fmt.Scanln(&superUserName)
-
-	fmt.Println("Enter PG Superuser password: ")
-	var superUserPass string
-	fmt.Scanln(&superUserPass)
-
-	fmt.Print(first + " " + second)
-	dsn := "host=localhost user=gorm password=gorm dbname=postgres port=5432"
-	_db, _err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	// dsn := "host=localhost user=gorm password=gorm dbname=postgres port=5432"
+	// _db, _err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 }
