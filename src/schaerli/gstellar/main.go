@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 )
 
@@ -16,27 +14,23 @@ type DbCredentials struct {
 func main() {
 
 	if _, err := os.Stat("gstellar.json"); err == nil {
-		fmt.Println("yaml here")
+		if len(os.Args) > 1 {
+			command := os.Args[1]
+
+			if command == "snapshot" {
+				fmt.Println("snapshot arg")
+				os.Exit(0)
+			}
+
+		} else {
+			fmt.Println("Commands:")
+			fmt.Println("  snapshot")
+			os.Exit(0)
+		}
 
 	} else if errors.Is(err, os.ErrNotExist) {
-		fmt.Println("Enter PG Superuser name: ")
-		var superUserName string
-		fmt.Scanln(&superUserName)
-
-		fmt.Println("Enter PG Superuser password: ")
-		var superUserPass string
-		fmt.Scanln(&superUserPass)
-
-		yml := DbCredentials{SuperUserName: superUserName, SuperUserPass: superUserPass}
-
-		file, _ := json.MarshalIndent(yml, "", " ")
-		ioutil.WriteFile("gstellar.json", file, 0644)
-
+		Init()
 	} else {
 		fmt.Println("else here")
 	}
-
-	// dsn := "host=localhost user=gorm password=gorm dbname=postgres port=5432"
-	// _db, _err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-
 }
