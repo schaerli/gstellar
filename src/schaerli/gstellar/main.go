@@ -1,36 +1,62 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 )
 
-type DbCredentials struct {
-	SuperUserName string
-	SuperUserPass string
-}
-
 func main() {
+	if len(os.Args) > 1 {
+		command := os.Args[1]
 
-	if _, err := os.Stat("gstellar.json"); err == nil {
-		if len(os.Args) > 1 {
-			command := os.Args[1]
-
-			if command == "snapshot" {
-				fmt.Println("snapshot arg")
+		if command == "snapshot" {
+			if len(os.Args) > 2 {
+				sub_command := os.Args[2]
+				if sub_command == "create" {
+					SnapshotCreate()
+					os.Exit(0)
+				}
+			} else {
+				fmt.Println("Snapshots Commands:")
+				fmt.Println("  create")
+				fmt.Println("  list")
 				os.Exit(0)
 			}
-
-		} else {
-			fmt.Println("Commands:")
-			fmt.Println("  snapshot")
+			fmt.Println("snapshot arg")
 			os.Exit(0)
 		}
 
-	} else if errors.Is(err, os.ErrNotExist) {
-		Init()
+		if command == "init" {
+			Init()
+		}
+
 	} else {
-		fmt.Println("else here")
+		fmt.Println("Commands:")
+		fmt.Println("  init")
+		fmt.Println("  snapshot")
+		os.Exit(0)
 	}
+}
+
+func ReadConfig() DbCredentials {
+	var dbCredentials DbCredentials
+	jsonFileName := "gstellar.json"
+
+	if _, err := os.Stat(jsonFileName); err == nil {
+		jsonFile, _ := os.Open(jsonFileName)
+		defer jsonFile.Close()
+
+		byteValue, _ := ioutil.ReadAll(jsonFile)
+
+		json.Unmarshal(byteValue, &dbCredentials)
+
+		return dbCredentials
+	} else if errors.Is(err, os.ErrNotExist) {
+		fmt.Println("No gstellar.json found here - run 'gstellar init' first")
+	}
+
+	return dbCredentials
 }
