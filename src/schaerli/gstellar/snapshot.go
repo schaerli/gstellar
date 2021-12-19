@@ -14,7 +14,6 @@ import (
 
 func SnapshotCreate() {
 	dbCredentials := ReadConfig()
-	fmt.Println(dbCredentials)
 
 	dsn := fmt.Sprintf("host=localhost user=%s password=%s dbname=gstellar port=5432", dbCredentials.SuperUserName, dbCredentials.SuperUserPass)
 	db, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -35,14 +34,9 @@ func SnapshotCreate() {
 	}
 	survey.AskOne(promptInput, &snapshotName)
 
-	fmt.Println(choosenDb)
-	fmt.Println(snapshotName)
-
 	snapshotDbName := buildSnapshotDbName(choosenDb, snapshotName)
-	fmt.Println(snapshotDbName)
 	orignalDbOwner := getDbOwner(db, choosenDb)
 	createSnapshotRecord(db, snapshotDbName, snapshotName, choosenDb, orignalDbOwner)
-
 	createSnapshot(db, snapshotDbName, choosenDb, orignalDbOwner)
 }
 

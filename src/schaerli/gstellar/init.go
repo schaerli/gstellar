@@ -24,7 +24,7 @@ func Init() {
 
 	superUserPass := passwordPrompt("Enter PG Superuser password:")
 
-	yml := DbCredentials{SuperUserName: superUserName, SuperUserPass: superUserPass}
+	jsonObj := DbCredentials{SuperUserName: superUserName, SuperUserPass: superUserPass}
 
 	dsn := fmt.Sprintf("host=localhost user=%s password=%s dbname=postgres port=5432", superUserName, superUserPass)
 	db, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -58,7 +58,7 @@ func Init() {
 		gstellarDb.Exec(sequence)
 	}
 
-	file, _ := json.MarshalIndent(yml, "", " ")
+	file, _ := json.MarshalIndent(jsonObj, "", " ")
 	ioutil.WriteFile("gstellar.json", file, 0644)
 }
 
