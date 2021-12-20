@@ -14,9 +14,13 @@ func main() {
 
 		if command == "snapshot" {
 			if len(os.Args) > 2 {
-				sub_command := os.Args[2]
-				if sub_command == "create" {
+				subCommand := os.Args[2]
+				if subCommand == "create" {
 					SnapshotCreate()
+					os.Exit(0)
+				}
+				if subCommand == "list" {
+					SnapshotList()
 					os.Exit(0)
 				}
 			} else {

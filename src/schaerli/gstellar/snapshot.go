@@ -3,28 +3,35 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
+type Snapshot struct {
+	Id int
+	SnapshottedDb string
+	SnapshotName string
+	OriginalDb string
+	OriginalOwner string
+	CreatedAt	time.Time
+}
 
 func SnapshotCreate() {
-	dbCredentials := ReadConfig()
+	db := getDb()
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=gstellar port=%s", dbCredentials.Host, dbCredentials.SuperUserName, dbCredentials.SuperUserPass, dbCredentials.Port)
-	db, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-
-	var dbName []string
-	db.Raw("SELECT datname FROM pg_database").Scan(&dbName)
+	var dbNames []string
+	db.Raw("SELECT datname FROM pg_database").Scan(&dbNames)
 
 	choosenDb := ""
 	prompt := &survey.Select{
 			Message: "Which DB?",
-			Options: dbName,
+			Options: dbNames,
 	}
 	survey.AskOne(prompt, &choosenDb, survey.WithValidator(survey.Required))
 
@@ -38,6 +45,39 @@ func SnapshotCreate() {
 	orignalDbOwner := getDbOwner(db, choosenDb)
 	createSnapshotRecord(db, snapshotDbName, snapshotName, choosenDb, orignalDbOwner)
 	createSnapshot(db, snapshotDbName, choosenDb, orignalDbOwner)
+}
+
+func SnapshotList() {
+	db := getDb()
+
+	rows, _ := db.Model(&Snapshot{}).Rows()
+	defer rows.Close()
+
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"#", "Snapshot name", "Source db", "Created at"})
+
+	for rows.Next() {
+		var snapshot Snapshot
+		db.ScanRows(rows, &snapshot)
+
+		t.AppendRow(table.Row{snapshot.Id, snapshot.SnapshotName, snapshot.OriginalDb, snapshot.CreatedAt})
+	}
+
+	t.Render()
+}
+
+func getDb() *gorm.DB {
+	dbCredentials := ReadConfig()
+
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=gstellar port=%s", dbCredentials.Host, dbCredentials.SuperUserName, dbCredentials.SuperUserPass, dbCredentials.Port)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	if err != nil {
+    panic("failed to connect database")
+  }
+
+	return db
 }
 
 func createSnapshot(db *gorm.DB, snapshotName string, choosenDb string, originalDbOwner string) {

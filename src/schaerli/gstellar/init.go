@@ -46,7 +46,7 @@ func Init() {
 
 	jsonObj := DbCredentials{SuperUserName: superUserName, SuperUserPass: superUserPass, Host: host, Port: port}
 
-	dsn := fmt.Sprintf("host=localhost user=%s password=%s dbname=postgres port=5432", superUserName, superUserPass)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=postgres port=%s", host, superUserName, superUserPass, port)
 	db, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	var dbName *string
@@ -56,7 +56,7 @@ func Init() {
 		fmt.Println("Create gstellar db")
 		db.Exec("CREATE DATABASE gstellar")
 
-		dsn := fmt.Sprintf("host=localhost user=%s password=%s dbname=gstellar port=5432", superUserName, superUserPass)
+		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=gstellar port=%s", host, superUserName, superUserPass, port)
 		gstellarDb, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 		snapshotTable := `CREATE TABLE IF NOT EXISTS snapshots (
