@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
-	"syscall"
 
-	"golang.org/x/term"
+	"github.com/AlecAivazis/survey/v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -15,16 +13,38 @@ import (
 type DbCredentials struct {
 	SuperUserName string
 	SuperUserPass string
+	Host string
+	Port string
 }
 
 func Init() {
-	fmt.Println("Enter PG Superuser name: ")
-	var superUserName string
-	fmt.Scanln(&superUserName)
+	superUserName := ""
+	superUserNameInput := &survey.Input{
+			Message: "Enter PG Superuser name:",
+	}
+	survey.AskOne(superUserNameInput, &superUserName, survey.WithValidator(survey.Required))
 
-	superUserPass := passwordPrompt("Enter PG Superuser password:")
+	superUserPass := ""
+	superUserPassInput := &survey.Password{
+			Message: "Enter PG Superuser password:",
+	}
+	survey.AskOne(superUserPassInput, &superUserPass)
 
-	jsonObj := DbCredentials{SuperUserName: superUserName, SuperUserPass: superUserPass}
+	host := ""
+	hostInput := &survey.Input{
+			Message: "Enter PG Host:",
+			Help: "maybe localhost",
+	}
+	survey.AskOne(hostInput, &host)
+
+	port := ""
+	portInput := &survey.Input{
+			Message: "Enter PG Port:",
+			Help: "maybe 5432",
+	}
+	survey.AskOne(portInput, &port)
+
+	jsonObj := DbCredentials{SuperUserName: superUserName, SuperUserPass: superUserPass, Host: host, Port: port}
 
 	dsn := fmt.Sprintf("host=localhost user=%s password=%s dbname=postgres port=5432", superUserName, superUserPass)
 	db, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -60,18 +80,4 @@ func Init() {
 
 	file, _ := json.MarshalIndent(jsonObj, "", " ")
 	ioutil.WriteFile("gstellar.json", file, 0644)
-}
-
-func passwordPrompt(label string) string {
-	var s string
-	for {
-			fmt.Fprint(os.Stderr, label+" ")
-			b, _ := term.ReadPassword(int(syscall.Stdin))
-			s = string(b)
-			if s != "" {
-					break
-			}
-	}
-	fmt.Println()
-	return s
 }

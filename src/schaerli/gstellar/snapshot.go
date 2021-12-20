@@ -15,7 +15,7 @@ import (
 func SnapshotCreate() {
 	dbCredentials := ReadConfig()
 
-	dsn := fmt.Sprintf("host=localhost user=%s password=%s dbname=gstellar port=5432", dbCredentials.SuperUserName, dbCredentials.SuperUserPass)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=gstellar port=%s", dbCredentials.Host, dbCredentials.SuperUserName, dbCredentials.SuperUserPass, dbCredentials.Port)
 	db, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	var dbName []string
