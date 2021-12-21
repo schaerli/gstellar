@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -67,6 +68,37 @@ func SnapshotList() {
 	t.Render()
 }
 
+func SnapshotRestore() {
+	db := getDb()
+
+	var snapshots []Snapshot
+	db.Select("Id", "SnapshotName", "OriginalDb", "CreatedAt").Find(&snapshots)
+
+	var snapshotLabels []string
+	for _, s := range snapshots {
+		label := fmt.Sprintf("%s | %s | %s | %s", strconv.Itoa(s.Id), s.SnapshotName, s.OriginalDb, s.CreatedAt)
+		snapshotLabels = append(snapshotLabels, label)
+	}
+
+	choosenSnapshot := ""
+	prompt := &survey.Select{
+			Message: "Which Snapshot?",
+			Options: snapshotLabels,
+	}
+	survey.AskOne(prompt, &choosenSnapshot, survey.WithValidator(survey.Required))
+	// fmt.Println(choosenSnapshot)
+
+	r, _ := regexp.Compile(`^\d*`)
+	id := r.FindString(choosenSnapshot)
+	fmt.Println(id)
+
+	var snapshot Snapshot
+	db.First(&snapshot, id)
+
+	removeDatabase(db, snapshot.OriginalDb)
+	createSnapshot(db, snapshot.OriginalDb, snapshot.SnapshottedDb, snapshot.OriginalOwner)
+}
+
 func getDb() *gorm.DB {
 	dbCredentials := ReadConfig()
 
@@ -78,6 +110,12 @@ func getDb() *gorm.DB {
   }
 
 	return db
+}
+
+func removeDatabase(db *gorm.DB, database  string) {
+	queryTemplate := "DROP DATABASE IF EXISTS %s WITH (FORCE)"
+	removeQuery := fmt.Sprintf(queryTemplate, database)
+	db.Exec(removeQuery)
 }
 
 func createSnapshot(db *gorm.DB, snapshotName string, choosenDb string, originalDbOwner string) {

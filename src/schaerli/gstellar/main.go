@@ -19,6 +19,10 @@ func main() {
 					SnapshotCreate()
 					os.Exit(0)
 				}
+				if subCommand == "restore" {
+					SnapshotRestore()
+					os.Exit(0)
+				}
 				if subCommand == "list" {
 					SnapshotList()
 					os.Exit(0)
