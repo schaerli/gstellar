@@ -1,4 +1,4 @@
-module schaerli/gstellar
+module github.com/schaerli/gstellar
 
 go 1.17
 
