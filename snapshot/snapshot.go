@@ -1,7 +1,10 @@
-package main
+package snapshot
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"os"
 	"regexp"
@@ -10,6 +13,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/schaerli/gstellar/initialize"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -169,4 +173,24 @@ func createSnapshotRecord(db *gorm.DB, snapshotDbName string,
 
 	insertQuery := fmt.Sprintf(queryTemplate, snapshotDbName, snapshotName, originalDb, orignalDbOwner)
 	db.Exec(insertQuery)
+}
+
+func ReadConfig() initialize.DbCredentials {
+	var dbCredentials initialize.DbCredentials
+	jsonFileName := "gstellar.json"
+
+	if _, err := os.Stat(jsonFileName); err == nil {
+		jsonFile, _ := os.Open(jsonFileName)
+		defer jsonFile.Close()
+
+		byteValue, _ := ioutil.ReadAll(jsonFile)
+
+		json.Unmarshal(byteValue, &dbCredentials)
+
+		return dbCredentials
+	} else if errors.Is(err, os.ErrNotExist) {
+		fmt.Println("No gstellar.json found here - run 'gstellar init' first")
+	}
+
+	return dbCredentials
 }
