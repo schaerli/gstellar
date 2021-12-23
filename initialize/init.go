@@ -8,6 +8,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type DbCredentials struct {
@@ -47,7 +48,9 @@ func Init() {
 	jsonObj := DbCredentials{SuperUserName: superUserName, SuperUserPass: superUserPass, Host: host, Port: port}
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=postgres port=%s", host, superUserName, superUserPass, port)
-	db, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	})
 
 	var dbName *string
 	db.Raw("SELECT datname FROM pg_database WHERE datname = 'gstellar'").Scan(&dbName)
@@ -57,7 +60,9 @@ func Init() {
 		db.Exec("CREATE DATABASE gstellar")
 
 		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=gstellar port=%s", host, superUserName, superUserPass, port)
-		gstellarDb, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		gstellarDb, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Silent),
+		})
 
 		snapshotTable := `CREATE TABLE IF NOT EXISTS snapshots (
 			id             integer not null primary key,
@@ -80,4 +85,5 @@ func Init() {
 
 	file, _ := json.MarshalIndent(jsonObj, "", " ")
 	ioutil.WriteFile("gstellar.json", file, 0644)
+	fmt.Println("init success")
 }

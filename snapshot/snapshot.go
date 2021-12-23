@@ -16,6 +16,7 @@ import (
 	"github.com/schaerli/gstellar/initialize"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type Snapshot struct {
@@ -50,6 +51,9 @@ func SnapshotCreate() {
 	orignalDbOwner := getDbOwner(db, choosenDb)
 	createSnapshotRecord(db, snapshotDbName, snapshotName, choosenDb, orignalDbOwner)
 	createSnapshot(db, snapshotDbName, choosenDb, orignalDbOwner)
+
+	output := fmt.Sprintf("Snapshot %s from %s created", snapshotName, choosenDb)
+	fmt.Println(output)
 }
 
 func SnapshotList() {
@@ -90,24 +94,27 @@ func SnapshotRestore() {
 			Options: snapshotLabels,
 	}
 	survey.AskOne(prompt, &choosenSnapshot, survey.WithValidator(survey.Required))
-	// fmt.Println(choosenSnapshot)
 
 	r, _ := regexp.Compile(`^\d*`)
 	id := r.FindString(choosenSnapshot)
-	fmt.Println(id)
 
 	var snapshot Snapshot
 	db.First(&snapshot, id)
 
 	removeDatabase(db, snapshot.OriginalDb)
 	createSnapshot(db, snapshot.OriginalDb, snapshot.SnapshottedDb, snapshot.OriginalOwner)
+
+	output := fmt.Sprintf("Snapshot %s on %s restored", snapshot.SnapshotName, snapshot.OriginalDb)
+	fmt.Println(output)
 }
 
 func getDb() *gorm.DB {
 	dbCredentials := ReadConfig()
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=gstellar port=%s", dbCredentials.Host, dbCredentials.SuperUserName, dbCredentials.SuperUserPass, dbCredentials.Port)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	})
 
 	if err != nil {
     panic("failed to connect database")
