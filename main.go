@@ -6,6 +6,7 @@ import (
 
 	"github.com/schaerli/gstellar/initialize"
 	"github.com/schaerli/gstellar/snapshot"
+	"github.com/schaerli/gstellar/web"
 )
 
 func main() {
@@ -40,6 +41,10 @@ func main() {
 
 		if command == "init" {
 			initialize.Init()
+		}
+
+		if command == "web" {
+			web.Start()
 		}
 
 	} else {
