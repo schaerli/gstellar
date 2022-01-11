@@ -131,9 +131,9 @@ func removeDatabase(db *gorm.DB, database  string) {
 
 func createSnapshot(db *gorm.DB, snapshotName string, choosenDb string, originalDbOwner string) {
 	queryTemplate := `
-	CREATE DATABASE %s
-	WITH TEMPLATE %s
-	OWNER %s
+	CREATE DATABASE "%s"
+	WITH TEMPLATE "%s"
+	OWNER "%s"
 	`
 
 	ownerQuery := fmt.Sprintf(queryTemplate, snapshotName, choosenDb, originalDbOwner)
