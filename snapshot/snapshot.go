@@ -29,7 +29,7 @@ type Snapshot struct {
 }
 
 func SnapshotCreate() {
-	db := getDb()
+	db := GetDb()
 
 	var dbNames []string
 	db.Raw("SELECT datname FROM pg_database").Scan(&dbNames)
@@ -57,7 +57,7 @@ func SnapshotCreate() {
 }
 
 func SnapshotList() {
-	db := getDb()
+	db := GetDb()
 
 	rows, _ := db.Model(&Snapshot{}).Rows()
 	defer rows.Close()
@@ -77,7 +77,7 @@ func SnapshotList() {
 }
 
 func SnapshotRestore() {
-	db := getDb()
+	db := GetDb()
 
 	var snapshots []Snapshot
 	db.Select("Id", "SnapshotName", "OriginalDb", "CreatedAt").Find(&snapshots)
@@ -108,7 +108,7 @@ func SnapshotRestore() {
 	fmt.Println(output)
 }
 
-func getDb() *gorm.DB {
+func GetDb() *gorm.DB {
 	dbCredentials := ReadConfig()
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=gstellar port=%s", dbCredentials.Host, dbCredentials.SuperUserName, dbCredentials.SuperUserPass, dbCredentials.Port)
