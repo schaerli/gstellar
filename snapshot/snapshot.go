@@ -130,6 +130,17 @@ func removeDatabase(db *gorm.DB, database  string) {
 }
 
 func createSnapshot(db *gorm.DB, snapshotName string, choosenDb string, originalDbOwner string) {
+	dropConnectionsTemplate := `
+	SELECT pg_terminate_backend(pg_stat_activity.pid)
+	FROM pg_stat_activity
+	WHERE pg_stat_activity.datname = '%s'
+		AND pid <> pg_backend_pid()
+	`
+
+	dropConnectionsQuery := fmt.Sprintf(dropConnectionsTemplate, choosenDb)
+	db.Exec(dropConnectionsQuery)
+
+
 	queryTemplate := `
 	CREATE DATABASE "%s"
 	WITH TEMPLATE "%s"
