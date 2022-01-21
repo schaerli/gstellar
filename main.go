@@ -17,7 +17,7 @@ func main() {
 			if len(os.Args) > 2 {
 				subCommand := os.Args[2]
 				if subCommand == "create" {
-					snapshot.SnapshotCreate()
+					snapshot.SnapshotCreatePrepare()
 					os.Exit(0)
 				}
 				if subCommand == "restore" {
@@ -51,6 +51,7 @@ func main() {
 		fmt.Println("Commands:")
 		fmt.Println("  init")
 		fmt.Println("  snapshot")
+		fmt.Println("  web")
 		os.Exit(0)
 	}
 }

@@ -66,14 +66,13 @@ func snapshotNew(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl.Execute(w, data)
-
 }
 
 func snapshotCreate(w http.ResponseWriter, r *http.Request) {
 	choosenDB := r.FormValue("selectDB")
 	snapshotName := r.FormValue("snapshotName")
 
-
+	snapshot.SnapshotCreate(choosenDB, snapshotName)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

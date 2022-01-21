@@ -28,7 +28,7 @@ type Snapshot struct {
 	CreatedAt	time.Time
 }
 
-func SnapshotCreate() {
+func SnapshotCreatePrepare() {
 	db := GetDb()
 
 	var dbNames []string
@@ -47,6 +47,11 @@ func SnapshotCreate() {
 	}
 	survey.AskOne(promptInput, &snapshotName)
 
+	SnapshotCreate(choosenDb, snapshotName)
+}
+
+func SnapshotCreate(choosenDb string, snapshotName string) {
+	db := GetDb()
 	snapshotDbName := buildSnapshotDbName(choosenDb, snapshotName)
 	orignalDbOwner := getDbOwner(db, choosenDb)
 	createSnapshotRecord(db, snapshotDbName, snapshotName, choosenDb, orignalDbOwner)
