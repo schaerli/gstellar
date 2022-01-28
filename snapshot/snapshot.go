@@ -124,7 +124,9 @@ func getDb() *gorm.DB {
 }
 
 func removeDatabase(db *gorm.DB, database  string) {
-	queryTemplate := "DROP DATABASE IF EXISTS %s WITH (FORCE)"
+	queryTemplate := `
+		DROP DATABASE IF EXISTS "%s" WITH (FORCE)
+	`
 	removeQuery := fmt.Sprintf(queryTemplate, database)
 	db.Exec(removeQuery)
 }
