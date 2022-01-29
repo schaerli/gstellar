@@ -34,7 +34,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.New("main.gohtml").ParseFiles("./web/templates/main.gohtml"))
 
 	db := snapshot.GetDb()
-	snapshotRows, _ := db.Model(&snapshot.Snapshot{}).Rows()
+	snapshotRows, _ := db.Order("id desc").Model(&snapshot.Snapshot{}).Rows()
 	defer snapshotRows.Close()
 
 	snapshots := make([]snapshot.Snapshot, 0)

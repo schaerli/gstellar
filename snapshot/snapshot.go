@@ -64,7 +64,8 @@ func SnapshotCreate(choosenDb string, snapshotName string) {
 func SnapshotList() {
 	db := GetDb()
 
-	rows, _ := db.Model(&Snapshot{}).Rows()
+	rows, _ := db.Order("id desc").Model(&Snapshot{}).Rows()
+
 	defer rows.Close()
 
 	t := table.NewWriter()
@@ -85,7 +86,7 @@ func SnapshotRestore() {
 	db := GetDb()
 
 	var snapshots []Snapshot
-	db.Select("Id", "SnapshotName", "OriginalDb", "CreatedAt").Find(&snapshots)
+	db.Order("id desc").Select("Id", "SnapshotName", "OriginalDb", "CreatedAt").Find(&snapshots)
 
 	var snapshotLabels []string
 	for _, s := range snapshots {
