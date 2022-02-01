@@ -23,7 +23,7 @@ func Start() {
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/snapshots/new", snapshotNew)
 	http.HandleFunc("/snapshots/create", snapshotCreate)
-	http.HandleFunc("/snapshots/restore", snapshotCreate)
+	http.HandleFunc("/snapshots/restore", snapshotResore)
 
 	fs := http.FileServer(http.Dir("./web/assets"))
 	http.Handle("/assets/", http.StripPrefix("/assets", fs))
@@ -76,4 +76,15 @@ func snapshotCreate(w http.ResponseWriter, r *http.Request) {
 	snapshot.SnapshotCreate(choosenDB, snapshotName)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func snapshotResore(w http.ResponseWriter, r *http.Request) {
+	snapshotId, ok := r.URL.Query()["snapshot_id"]
+
+	if !ok || len(snapshotId[0]) < 1 {
+			log.Println("Url Param 'snapshot_id' is missing")
+			return
+	}
+
+	snapshot.SnapshotRestore(snapshotId[0])
 }

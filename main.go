@@ -21,7 +21,7 @@ func main() {
 					os.Exit(0)
 				}
 				if subCommand == "restore" {
-					snapshot.SnapshotRestore()
+					snapshot.SnapshotRestorePrepare()
 					os.Exit(0)
 				}
 				if subCommand == "list" {

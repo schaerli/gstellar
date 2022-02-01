@@ -9,3 +9,8 @@
 .gstellar-spinner{
   display: none;
 }
+
+.gstellar-restore-spinner{
+  display: none;
+  margin-bottom: -13px;
+}

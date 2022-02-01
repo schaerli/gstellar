@@ -1,25 +1,27 @@
 (function() {
-  const restoreButton = document.querySelector("#snaphostRestoreLink")
-  const snapshotId = restoreButton.dataset.snapshotId
+  const restoreButtons = document.querySelectorAll(".snaphost-restore-button")
 
-  restoreButton.addEventListener("click", (event) => {
-    restoreButton.disabled = true
-    const sure = window.confirm("Are you sure?")
+  restoreButtons.forEach(restoreButton =>
+    restoreButton.addEventListener("click", (event) => {
+      restoreButton.disabled = true
+      const sure = window.confirm("Are you sure?")
 
-    if(sure) {
-      fetch("/get-data", opts).then(function (response) {
-        return response.json();
-      })
-      .then(function (body) {
-        //doSomething with body;
-      });
+      if(sure) {
+        const spinner = event.target.nextElementSibling
+        spinner.style.display = "inline-block"
 
-    } else {
-      restoreButton.disabled = false
-    }
+        fetch("/snapshots/restore?snapshot_id=" + event.target.dataset.snapshotId).then(function (response) {
+        })
+        .then(function (body) {
+          console.log('finish')
+          restoreButton.disabled = false
+          spinner.style.display = "none"
+        });
 
-    // spinner.style.display = "inline-block"
-    // submitButton.form.submit()
-  })
-
+      } else {
+        restoreButton.disabled = false
+        spinner.style.display = "none"
+      }
+    })
+  )
 })();

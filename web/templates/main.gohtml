@@ -45,7 +45,10 @@
                   <td>{{.OriginalDb}}</td>
                   <td>{{.CreatedAt}}</td>
                   <td>
-                    <button data-snapshot-id="{{.Id}}" id="snaphostRestoreLink" class="btn btn-outline-secondary btn-sm">Restore</button>
+                    <button data-snapshot-id="{{.Id}}" class="btn btn-outline-secondary btn-sm snaphost-restore-button">
+                    Restore
+                    </button>
+                    <div class="spinner-border text-dark gstellar-restore-spinner" role="status" />
                   </td>
                 </tr>
               {{end}}

@@ -82,7 +82,7 @@ func SnapshotList() {
 	t.Render()
 }
 
-func SnapshotRestore() {
+func SnapshotRestorePrepare() {
 	db := GetDb()
 
 	var snapshots []Snapshot
@@ -103,9 +103,13 @@ func SnapshotRestore() {
 
 	r, _ := regexp.Compile(`^\d*`)
 	id := r.FindString(choosenSnapshot)
+	SnapshotRestore(id)
+}
 
+func SnapshotRestore(snapshotId string) {
+	db := GetDb()
 	var snapshot Snapshot
-	db.First(&snapshot, id)
+	db.First(&snapshot, snapshotId)
 
 	removeDatabase(db, snapshot.OriginalDb)
 	createSnapshot(db, snapshot.OriginalDb, snapshot.SnapshottedDb, snapshot.OriginalOwner)
