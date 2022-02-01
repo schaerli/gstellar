@@ -106,7 +106,7 @@ func SnapshotRestorePrepare() {
 	SnapshotRestore(id)
 }
 
-func SnapshotRestore(snapshotId string) {
+func SnapshotRestore(snapshotId string) string {
 	db := GetDb()
 	var snapshot Snapshot
 	db.First(&snapshot, snapshotId)
@@ -116,6 +116,8 @@ func SnapshotRestore(snapshotId string) {
 
 	output := fmt.Sprintf("Snapshot %s on %s restored", snapshot.SnapshotName, snapshot.OriginalDb)
 	fmt.Println(output)
+
+	return output
 }
 
 func GetDb() *gorm.DB {

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -15,6 +16,10 @@ type snapshotNewData struct {
 
 type indexData struct{
 	Snapshots []snapshot.Snapshot
+}
+
+type restoreJson struct{
+	Message string
 }
 
 func Start() {
@@ -79,6 +84,8 @@ func snapshotCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func snapshotResore(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	snapshotId, ok := r.URL.Query()["snapshot_id"]
 
 	if !ok || len(snapshotId[0]) < 1 {
@@ -86,5 +93,7 @@ func snapshotResore(w http.ResponseWriter, r *http.Request) {
 			return
 	}
 
-	snapshot.SnapshotRestore(snapshotId[0])
+	msg := snapshot.SnapshotRestore(snapshotId[0])
+	response := restoreJson{Message: msg}
+	json.NewEncoder(w).Encode(response)
 }
