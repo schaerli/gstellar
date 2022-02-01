@@ -13,7 +13,6 @@
         fetch("/snapshots/restore?snapshot_id=" + event.target.dataset.snapshotId).then(function (response) {
         })
         .then(function (body) {
-          console.log('finish')
           restoreButton.disabled = false
           spinner.style.display = "none"
         });
