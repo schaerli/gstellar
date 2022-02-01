@@ -45,7 +45,7 @@
                   <td>{{.OriginalDb}}</td>
                   <td>{{.CreatedAt}}</td>
                   <td>
-                    <a href="" class="btn btn-outline-secondary btn-sm">Restore</a>
+                    <button data-snapshot-id="{{.Id}}" id="snaphostRestoreLink" class="btn btn-outline-secondary btn-sm">Restore</button>
                   </td>
                 </tr>
               {{end}}
@@ -56,4 +56,5 @@
       </div>
     </div>
   </body>
+  <script src="/assets/snapshotRestore.js"></script>
 </html>

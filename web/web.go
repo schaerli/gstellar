@@ -23,6 +23,7 @@ func Start() {
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/snapshots/new", snapshotNew)
 	http.HandleFunc("/snapshots/create", snapshotCreate)
+	http.HandleFunc("/snapshots/restore", snapshotCreate)
 
 	fs := http.FileServer(http.Dir("./web/assets"))
 	http.Handle("/assets/", http.StripPrefix("/assets", fs))
