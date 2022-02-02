@@ -1,10 +1,7 @@
 package snapshot
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"regexp"
@@ -121,7 +118,7 @@ func SnapshotRestore(snapshotId string) string {
 }
 
 func GetDb() *gorm.DB {
-	dbCredentials := ReadConfig()
+	dbCredentials := initialize.ReadConfig()
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=gstellar port=%s", dbCredentials.Host, dbCredentials.SuperUserName, dbCredentials.SuperUserPass, dbCredentials.Port)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
@@ -205,24 +202,4 @@ func createSnapshotRecord(db *gorm.DB, snapshotDbName string,
 
 	insertQuery := fmt.Sprintf(queryTemplate, snapshotDbName, snapshotName, originalDb, orignalDbOwner)
 	db.Exec(insertQuery)
-}
-
-func ReadConfig() initialize.DbCredentials {
-	var dbCredentials initialize.DbCredentials
-	jsonFileName := "gstellar.json"
-
-	if _, err := os.Stat(jsonFileName); err == nil {
-		jsonFile, _ := os.Open(jsonFileName)
-		defer jsonFile.Close()
-
-		byteValue, _ := ioutil.ReadAll(jsonFile)
-
-		json.Unmarshal(byteValue, &dbCredentials)
-
-		return dbCredentials
-	} else if errors.Is(err, os.ErrNotExist) {
-		fmt.Println("No gstellar.json found here - run 'gstellar init' first")
-	}
-
-	return dbCredentials
 }

@@ -43,6 +43,10 @@ func main() {
 			initialize.Init()
 		}
 
+		if command == "init-only-db" {
+			initialize.InitDb()
+		}
+
 		if command == "web" {
 			web.Start()
 		}
