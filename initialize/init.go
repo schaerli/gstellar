@@ -2,8 +2,10 @@ package initialize
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/AlecAivazis/survey/v2"
 	"gorm.io/driver/postgres"
@@ -47,7 +49,16 @@ func Init() {
 
 	jsonObj := DbCredentials{SuperUserName: superUserName, SuperUserPass: superUserPass, Host: host, Port: port}
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=postgres port=%s", host, superUserName, superUserPass, port)
+	file, _ := json.MarshalIndent(jsonObj, "", " ")
+	ioutil.WriteFile("gstellar.json", file, 0644)
+	fmt.Println("init success")
+	InitDb()
+}
+
+func InitDb() {
+	dbCredentials := ReadConfig()
+
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=postgres port=%s", dbCredentials.Host, dbCredentials.SuperUserName, dbCredentials.SuperUserPass, dbCredentials.Port)
 	db, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
@@ -59,7 +70,7 @@ func Init() {
 		fmt.Println("Create gstellar db")
 		db.Exec("CREATE DATABASE gstellar")
 
-		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=gstellar port=%s", host, superUserName, superUserPass, port)
+		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=gstellar port=%s", dbCredentials.Host, dbCredentials.SuperUserName, dbCredentials.SuperUserPass, dbCredentials.Port)
 		gstellarDb, _ := gorm.Open(postgres.Open(dsn), &gorm.Config{
 			Logger: logger.Default.LogMode(logger.Silent),
 		})
@@ -82,8 +93,24 @@ func Init() {
 		`
 		gstellarDb.Exec(sequence)
 	}
+}
 
-	file, _ := json.MarshalIndent(jsonObj, "", " ")
-	ioutil.WriteFile("gstellar.json", file, 0644)
-	fmt.Println("init success")
+func ReadConfig() DbCredentials {
+	var dbCredentials DbCredentials
+	jsonFileName := "gstellar.json"
+
+	if _, err := os.Stat(jsonFileName); err == nil {
+		jsonFile, _ := os.Open(jsonFileName)
+		defer jsonFile.Close()
+
+		byteValue, _ := ioutil.ReadAll(jsonFile)
+
+		json.Unmarshal(byteValue, &dbCredentials)
+
+		return dbCredentials
+	} else if errors.Is(err, os.ErrNotExist) {
+		fmt.Println("No gstellar.json found here - run 'gstellar init' first")
+	}
+
+	return dbCredentials
 }

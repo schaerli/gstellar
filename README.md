@@ -23,6 +23,7 @@ gstellar
 ```bash
 init
 snapshot
+web
 ```
 
 * Snapshots commands are
@@ -36,6 +37,8 @@ list
 
 * 0.1
     * Initial Release
+* 0.2
+    * Webinterface
 
 ## License
 

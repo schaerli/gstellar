@@ -1,0 +1,67 @@
+{{ define "main" }}<!DOCTYPE html> {{ end }}
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Dashboard Template for Bootstrap</title>
+    <!-- Bootstrap core CSS -->
+    <link href="/assets/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/main.css" rel="stylesheet">
+  </head>
+  <body>
+    <nav class="navbar navbar-dark bg-dark margin-bottom-10">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/">gstellar</a>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="alert alert-success" id="successfulRestore" role="alert" style="display: none;">
+
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h4>Snapshots
+            <a class="btn btn-primary btn-sm margin-bottom-10" href="/snapshots/new">New Snapshot</a>
+          </h4>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Snapshot Name</th>
+                <th scope="col">Source DB</th>
+                <th scope="col">Created at</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              {{range .Snapshots}}
+                <tr>
+                  <th scope="row">{{.Id}}</th>
+                  <td>{{.SnapshotName}}</td>
+                  <td>{{.OriginalDb}}</td>
+                  <td>{{.CreatedAt}}</td>
+                  <td>
+                    <button data-snapshot-id="{{.Id}}" class="btn btn-outline-secondary btn-sm snaphost-restore-button">
+                    Restore
+                    </button>
+                    <div class="spinner-border text-dark gstellar-restore-spinner" role="status" />
+                  </td>
+                </tr>
+              {{end}}
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="/assets/snapshotRestore.js"></script>
+</html>

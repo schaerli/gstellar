@@ -1,0 +1,52 @@
+{{ define "snapshotNew" }}<!DOCTYPE html> {{ end }}
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Dashboard Template for Bootstrap</title>
+    <!-- Bootstrap core CSS -->
+    <link href="/assets/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/main.css" rel="stylesheet">
+  </head>
+  <body>
+    <nav class="navbar navbar-dark bg-dark margin-bottom-10">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/">gstellar</a>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="card">
+        <div class="card-body">
+          <h4>New Snapshot</h4>
+            <form action="/snapshots/create" method="post">
+              <div class="mb-3">
+                <label for="selectDB" class="form-label">Which DB?</label>
+                <select class="form-select" aria-label="Default select example" id="selectDB" name="selectDB">
+                  {{range .DbNames}}
+                    <option value={{.}}>{{.}}</option>
+                  {{end}}
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="snapshotName" class="form-label">Snapshot name?</label>
+                <input class="form-control" id="snapshotName" name="snapshotName">
+              </div>
+
+              <div>
+                <input type="submit" value="Create Snapshot", class="btn btn-primary gstellar-submit">
+                <div class="spinner-border text-dark gstellar-spinner" role="status" />
+              </div>
+
+            </form>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="/assets/snapshotNew.js"></script>
+</html>

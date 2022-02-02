@@ -6,6 +6,7 @@ import (
 
 	"github.com/schaerli/gstellar/initialize"
 	"github.com/schaerli/gstellar/snapshot"
+	"github.com/schaerli/gstellar/web"
 )
 
 func main() {
@@ -16,11 +17,11 @@ func main() {
 			if len(os.Args) > 2 {
 				subCommand := os.Args[2]
 				if subCommand == "create" {
-					snapshot.SnapshotCreate()
+					snapshot.SnapshotCreatePrepare()
 					os.Exit(0)
 				}
 				if subCommand == "restore" {
-					snapshot.SnapshotRestore()
+					snapshot.SnapshotRestorePrepare()
 					os.Exit(0)
 				}
 				if subCommand == "list" {
@@ -42,10 +43,19 @@ func main() {
 			initialize.Init()
 		}
 
+		if command == "init-only-db" {
+			initialize.InitDb()
+		}
+
+		if command == "web" {
+			web.Start()
+		}
+
 	} else {
 		fmt.Println("Commands:")
 		fmt.Println("  init")
 		fmt.Println("  snapshot")
+		fmt.Println("  web")
 		os.Exit(0)
 	}
 }

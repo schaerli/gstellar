@@ -1,10 +1,7 @@
 package snapshot
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"regexp"
@@ -28,8 +25,8 @@ type Snapshot struct {
 	CreatedAt	time.Time
 }
 
-func SnapshotCreate() {
-	db := getDb()
+func SnapshotCreatePrepare() {
+	db := GetDb()
 
 	var dbNames []string
 	db.Raw("SELECT datname FROM pg_database").Scan(&dbNames)
@@ -47,6 +44,11 @@ func SnapshotCreate() {
 	}
 	survey.AskOne(promptInput, &snapshotName)
 
+	SnapshotCreate(choosenDb, snapshotName)
+}
+
+func SnapshotCreate(choosenDb string, snapshotName string) {
+	db := GetDb()
 	snapshotDbName := buildSnapshotDbName(choosenDb, snapshotName)
 	orignalDbOwner := getDbOwner(db, choosenDb)
 	createSnapshotRecord(db, snapshotDbName, snapshotName, choosenDb, orignalDbOwner)
@@ -57,9 +59,10 @@ func SnapshotCreate() {
 }
 
 func SnapshotList() {
-	db := getDb()
+	db := GetDb()
 
-	rows, _ := db.Model(&Snapshot{}).Rows()
+	rows, _ := db.Order("id desc").Model(&Snapshot{}).Rows()
+
 	defer rows.Close()
 
 	t := table.NewWriter()
@@ -76,11 +79,11 @@ func SnapshotList() {
 	t.Render()
 }
 
-func SnapshotRestore() {
-	db := getDb()
+func SnapshotRestorePrepare() {
+	db := GetDb()
 
 	var snapshots []Snapshot
-	db.Select("Id", "SnapshotName", "OriginalDb", "CreatedAt").Find(&snapshots)
+	db.Order("id desc").Select("Id", "SnapshotName", "OriginalDb", "CreatedAt").Find(&snapshots)
 
 	var snapshotLabels []string
 	for _, s := range snapshots {
@@ -97,19 +100,25 @@ func SnapshotRestore() {
 
 	r, _ := regexp.Compile(`^\d*`)
 	id := r.FindString(choosenSnapshot)
+	SnapshotRestore(id)
+}
 
+func SnapshotRestore(snapshotId string) string {
+	db := GetDb()
 	var snapshot Snapshot
-	db.First(&snapshot, id)
+	db.First(&snapshot, snapshotId)
 
 	removeDatabase(db, snapshot.OriginalDb)
 	createSnapshot(db, snapshot.OriginalDb, snapshot.SnapshottedDb, snapshot.OriginalOwner)
 
 	output := fmt.Sprintf("Snapshot %s on %s restored", snapshot.SnapshotName, snapshot.OriginalDb)
 	fmt.Println(output)
+
+	return output
 }
 
-func getDb() *gorm.DB {
-	dbCredentials := ReadConfig()
+func GetDb() *gorm.DB {
+	dbCredentials := initialize.ReadConfig()
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=gstellar port=%s", dbCredentials.Host, dbCredentials.SuperUserName, dbCredentials.SuperUserPass, dbCredentials.Port)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
@@ -193,24 +202,4 @@ func createSnapshotRecord(db *gorm.DB, snapshotDbName string,
 
 	insertQuery := fmt.Sprintf(queryTemplate, snapshotDbName, snapshotName, originalDb, orignalDbOwner)
 	db.Exec(insertQuery)
-}
-
-func ReadConfig() initialize.DbCredentials {
-	var dbCredentials initialize.DbCredentials
-	jsonFileName := "gstellar.json"
-
-	if _, err := os.Stat(jsonFileName); err == nil {
-		jsonFile, _ := os.Open(jsonFileName)
-		defer jsonFile.Close()
-
-		byteValue, _ := ioutil.ReadAll(jsonFile)
-
-		json.Unmarshal(byteValue, &dbCredentials)
-
-		return dbCredentials
-	} else if errors.Is(err, os.ErrNotExist) {
-		fmt.Println("No gstellar.json found here - run 'gstellar init' first")
-	}
-
-	return dbCredentials
 }

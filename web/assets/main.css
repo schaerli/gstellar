@@ -1,0 +1,16 @@
+.margin-bottom-10 {
+  margin-bottom: 10px;
+}
+
+.gstellar-submit{
+  margin-bottom: 22px;
+}
+
+.gstellar-spinner{
+  display: none;
+}
+
+.gstellar-restore-spinner{
+  display: none;
+  margin-bottom: -13px;
+}
