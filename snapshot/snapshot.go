@@ -133,11 +133,34 @@ func GetDb() *gorm.DB {
 }
 
 func removeDatabase(db *gorm.DB, database  string) {
-	queryTemplate := `
+	var server_version string
+	versionQuery := "SHOW server_version"
+	db.Raw(versionQuery).Scan(&server_version)
+	floatVar, _ := strconv.ParseFloat(server_version, 32)
+
+	if floatVar <= 13.0 {
+		dropConnectionsTemplate := `
+		SELECT pg_terminate_backend(pg_stat_activity.pid)
+		FROM pg_stat_activity
+		WHERE pg_stat_activity.datname = '%s'
+			AND pid <> pg_backend_pid()
+		`
+
+		dropConnectionsQuery := fmt.Sprintf(dropConnectionsTemplate, database)
+		db.Exec(dropConnectionsQuery)
+
+		queryTemplate := `
+		DROP DATABASE IF EXISTS "%s"
+		`
+		removeQuery := fmt.Sprintf(queryTemplate, database)
+		db.Exec(removeQuery)
+	} else {
+		queryTemplate := `
 		DROP DATABASE IF EXISTS "%s" WITH (FORCE)
-	`
-	removeQuery := fmt.Sprintf(queryTemplate, database)
-	db.Exec(removeQuery)
+		`
+		removeQuery := fmt.Sprintf(queryTemplate, database)
+		db.Exec(removeQuery)
+	}
 }
 
 func createSnapshot(db *gorm.DB, snapshotName string, choosenDb string, originalDbOwner string) {
