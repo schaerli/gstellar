@@ -23,6 +23,11 @@ type Snapshot struct {
 	OriginalDb string
 	OriginalOwner string
 	CreatedAt	time.Time
+	SizeGb int
+}
+
+type SizeGb struct{
+	Sizegb int
 }
 
 func SnapshotCreatePrepare() {
@@ -67,13 +72,14 @@ func SnapshotList() {
 
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"#", "Snapshot name", "Source db", "Created at"})
+	t.AppendHeader(table.Row{"#", "Snapshot name", "Source db", "Used Giga", "Created at"})
 
 	for rows.Next() {
 		var snapshot Snapshot
 		db.ScanRows(rows, &snapshot)
+		sizeGiga := GetSizeOfDb(db, snapshot.SnapshottedDb)
 
-		t.AppendRow(table.Row{snapshot.Id, snapshot.SnapshotName, snapshot.OriginalDb, snapshot.CreatedAt})
+		t.AppendRow(table.Row{snapshot.Id, snapshot.SnapshotName, snapshot.OriginalDb, sizeGiga, snapshot.CreatedAt})
 	}
 
 	t.Render()
@@ -225,4 +231,19 @@ func createSnapshotRecord(db *gorm.DB, snapshotDbName string,
 
 	insertQuery := fmt.Sprintf(queryTemplate, snapshotDbName, snapshotName, originalDb, orignalDbOwner)
 	db.Exec(insertQuery)
+}
+
+func GetSizeOfDb(db *gorm.DB, dbName string) int {
+	getSizeQueryTemplate := `
+	SELECT pg_database.datname AS "databasename",
+	pg_database_size(pg_database.datname)/1024/1024/1024 AS "sizegb"
+	FROM pg_database
+	WHERE pg_database.datname='%s'
+	`
+	dbSizeQuery := fmt.Sprintf(getSizeQueryTemplate, dbName)
+
+	var sizegb SizeGb
+	db.Raw(dbSizeQuery).Scan(&sizegb)
+
+	return sizegb.Sizegb
 }

@@ -46,10 +46,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	snapshots := make([]snapshot.Snapshot, 0)
 
 	for snapshotRows.Next() {
-		var snapshot snapshot.Snapshot
-		db.ScanRows(snapshotRows, &snapshot)
+		var snapshotObject snapshot.Snapshot
+		db.ScanRows(snapshotRows, &snapshotObject)
+		snapshotObject.SizeGb = snapshot.GetSizeOfDb(db, snapshotObject.SnapshottedDb)
 
-		snapshots = append(snapshots, snapshot)
+		snapshots = append(snapshots, snapshotObject)
 	}
 
 	data := &indexData{
