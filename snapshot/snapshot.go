@@ -86,27 +86,7 @@ func SnapshotList() {
 }
 
 func SnapshotRestorePrepare() {
-	db := GetDb()
-
-	var snapshots []Snapshot
-	db.Order("id desc").Select("Id", "SnapshotName", "OriginalDb", "CreatedAt").Find(&snapshots)
-
-	var snapshotLabels []string
-	for _, s := range snapshots {
-		label := fmt.Sprintf("%s | %s | %s | %s", strconv.Itoa(s.Id), s.SnapshotName, s.OriginalDb, s.CreatedAt)
-		snapshotLabels = append(snapshotLabels, label)
-	}
-
-	choosenSnapshot := ""
-	prompt := &survey.Select{
-			Message: "Which Snapshot?",
-			Options: snapshotLabels,
-	}
-	survey.AskOne(prompt, &choosenSnapshot, survey.WithValidator(survey.Required))
-
-	r, _ := regexp.Compile(`^\d*`)
-	id := r.FindString(choosenSnapshot)
-	SnapshotRestore(id)
+	SnapshotRestore(chooseSnapshot())
 }
 
 func SnapshotRestore(snapshotId string) string {
@@ -138,7 +118,7 @@ func GetDb() *gorm.DB {
 	return db
 }
 
-func removeDatabase(db *gorm.DB, database  string) {
+func removeDatabase(db *gorm.DB, database string) {
 	var server_version string
 	versionQuery := "SHOW server_version"
 	db.Raw(versionQuery).Scan(&server_version)
@@ -246,4 +226,61 @@ func GetSizeOfDb(db *gorm.DB, dbName string) int {
 	db.Raw(dbSizeQuery).Scan(&sizegb)
 
 	return sizegb.Sizegb
+}
+
+func DropSnapshot() {
+	id := chooseSnapshot()
+	db := GetDb()
+	var snapshot Snapshot
+	db.First(&snapshot, id)
+
+	removeDatabase(db, snapshot.SnapshottedDb)
+
+	queryTemplate := `
+	delete from snapshots where id = '%d'
+	`
+
+	dropQuery := fmt.Sprintf(queryTemplate, snapshot.Id)
+	db.Exec(dropQuery)
+	output := fmt.Sprintf("Snapshot %s dropped database %s", snapshot.SnapshotName, snapshot.SnapshottedDb)
+	fmt.Println(output)
+}
+
+func chooseSnapshot() string {
+	db := GetDb()
+
+	var snapshots []Snapshot
+	db.Order("id desc").Select("Id", "SnapshotName", "OriginalDb", "CreatedAt").Find(&snapshots)
+
+	if len(snapshots) == 0 {
+		fmt.Println("No snapshots found!")
+		os.Exit(0)
+	}
+
+	var snapshotLabels []string
+	for _, s := range snapshots {
+		label := fmt.Sprintf("%s | %s | %s | %s", strconv.Itoa(s.Id), s.SnapshotName, s.OriginalDb, s.CreatedAt)
+		snapshotLabels = append(snapshotLabels, label)
+	}
+
+	choosenSnapshot := ""
+	prompt := &survey.Select{
+			Message: "Which Snapshot?",
+			Options: snapshotLabels,
+	}
+
+	err := survey.AskOne(prompt, &choosenSnapshot, survey.WithValidator(survey.Required))
+	switch {
+	case err.Error() == "interrupt":
+					fmt.Println("ctrl-C pressed. Exiting.")
+					os.Exit(1)
+	case err != nil:
+					fmt.Printf("%v. Trying again.\n", err)
+	default:
+					break
+	}
+
+	r, _ := regexp.Compile(`^\d*`)
+
+	return r.FindString(choosenSnapshot)
 }

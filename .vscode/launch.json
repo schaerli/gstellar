@@ -21,6 +21,17 @@
       "args": [
         "web"
       ]
+    },
+    {
+      "name": "snapshot drop",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}",
+      "args": [
+        "snapshot",
+        "drop"
+      ]
     }
   ]
 }

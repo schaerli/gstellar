@@ -28,11 +28,16 @@ func main() {
 					snapshot.SnapshotList()
 					os.Exit(0)
 				}
+				if subCommand == "drop" {
+					snapshot.DropSnapshot()
+					os.Exit(0)
+				}
 			} else {
 				fmt.Println("Snapshots Commands:")
 				fmt.Println("  create")
 				fmt.Println("  restore")
 				fmt.Println("  list")
+				fmt.Println("  drop")
 				os.Exit(0)
 			}
 			fmt.Println("snapshot arg")
