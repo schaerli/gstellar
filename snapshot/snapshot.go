@@ -23,6 +23,11 @@ type Snapshot struct {
 	OriginalDb string
 	OriginalOwner string
 	CreatedAt	time.Time
+	SizeGb int
+}
+
+type SizeGb struct{
+	Sizegb int
 }
 
 func SnapshotCreatePrepare() {
@@ -67,40 +72,21 @@ func SnapshotList() {
 
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"#", "Snapshot name", "Source db", "Created at"})
+	t.AppendHeader(table.Row{"#", "Snapshot name", "Source db", "Used Giga", "Created at"})
 
 	for rows.Next() {
 		var snapshot Snapshot
 		db.ScanRows(rows, &snapshot)
+		sizeGiga := GetSizeOfDb(db, snapshot.SnapshottedDb)
 
-		t.AppendRow(table.Row{snapshot.Id, snapshot.SnapshotName, snapshot.OriginalDb, snapshot.CreatedAt})
+		t.AppendRow(table.Row{snapshot.Id, snapshot.SnapshotName, snapshot.OriginalDb, sizeGiga, snapshot.CreatedAt})
 	}
 
 	t.Render()
 }
 
 func SnapshotRestorePrepare() {
-	db := GetDb()
-
-	var snapshots []Snapshot
-	db.Order("id desc").Select("Id", "SnapshotName", "OriginalDb", "CreatedAt").Find(&snapshots)
-
-	var snapshotLabels []string
-	for _, s := range snapshots {
-		label := fmt.Sprintf("%s | %s | %s | %s", strconv.Itoa(s.Id), s.SnapshotName, s.OriginalDb, s.CreatedAt)
-		snapshotLabels = append(snapshotLabels, label)
-	}
-
-	choosenSnapshot := ""
-	prompt := &survey.Select{
-			Message: "Which Snapshot?",
-			Options: snapshotLabels,
-	}
-	survey.AskOne(prompt, &choosenSnapshot, survey.WithValidator(survey.Required))
-
-	r, _ := regexp.Compile(`^\d*`)
-	id := r.FindString(choosenSnapshot)
-	SnapshotRestore(id)
+	SnapshotRestore(chooseSnapshot())
 }
 
 func SnapshotRestore(snapshotId string) string {
@@ -132,7 +118,7 @@ func GetDb() *gorm.DB {
 	return db
 }
 
-func removeDatabase(db *gorm.DB, database  string) {
+func removeDatabase(db *gorm.DB, database string) {
 	var server_version string
 	versionQuery := "SHOW server_version"
 	db.Raw(versionQuery).Scan(&server_version)
@@ -225,4 +211,80 @@ func createSnapshotRecord(db *gorm.DB, snapshotDbName string,
 
 	insertQuery := fmt.Sprintf(queryTemplate, snapshotDbName, snapshotName, originalDb, orignalDbOwner)
 	db.Exec(insertQuery)
+}
+
+func GetSizeOfDb(db *gorm.DB, dbName string) int {
+	getSizeQueryTemplate := `
+	SELECT pg_database.datname AS "databasename",
+	pg_database_size(pg_database.datname)/1024/1024/1024 AS "sizegb"
+	FROM pg_database
+	WHERE pg_database.datname='%s'
+	`
+	dbSizeQuery := fmt.Sprintf(getSizeQueryTemplate, dbName)
+
+	var sizegb SizeGb
+	db.Raw(dbSizeQuery).Scan(&sizegb)
+
+	return sizegb.Sizegb
+}
+
+func DropSnapshotPrepare() {
+	DropSnapshot(chooseSnapshot())
+}
+
+func DropSnapshot(id string) string {
+	db := GetDb()
+	var snapshot Snapshot
+	db.First(&snapshot, id)
+
+	removeDatabase(db, snapshot.SnapshottedDb)
+
+	queryTemplate := `
+	delete from snapshots where id = '%d'
+	`
+
+	dropQuery := fmt.Sprintf(queryTemplate, snapshot.Id)
+	db.Exec(dropQuery)
+	output := fmt.Sprintf("Snapshot %s dropped database %s", snapshot.SnapshotName, snapshot.SnapshottedDb)
+	fmt.Println(output)
+	return output
+}
+
+func chooseSnapshot() string {
+	db := GetDb()
+
+	var snapshots []Snapshot
+	db.Order("id desc").Select("Id", "SnapshotName", "OriginalDb", "CreatedAt").Find(&snapshots)
+
+	if len(snapshots) == 0 {
+		fmt.Println("No snapshots found!")
+		os.Exit(0)
+	}
+
+	var snapshotLabels []string
+	for _, s := range snapshots {
+		label := fmt.Sprintf("%s | %s | %s | %s", strconv.Itoa(s.Id), s.SnapshotName, s.OriginalDb, s.CreatedAt)
+		snapshotLabels = append(snapshotLabels, label)
+	}
+
+	choosenSnapshot := ""
+	prompt := &survey.Select{
+			Message: "Which Snapshot?",
+			Options: snapshotLabels,
+	}
+
+	err := survey.AskOne(prompt, &choosenSnapshot, survey.WithValidator(survey.Required))
+	switch {
+	case err.Error() == "interrupt":
+					fmt.Println("ctrl-C pressed. Exiting.")
+					os.Exit(1)
+	case err != nil:
+					fmt.Printf("%v. Trying again.\n", err)
+	default:
+					break
+	}
+
+	r, _ := regexp.Compile(`^\d*`)
+
+	return r.FindString(choosenSnapshot)
 }

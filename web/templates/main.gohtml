@@ -36,6 +36,7 @@
                 <th scope="col">#</th>
                 <th scope="col">Snapshot Name</th>
                 <th scope="col">Source DB</th>
+                <th scope="col">Used Giga</th>
                 <th scope="col">Created at</th>
                 <th scope="col">Actions</th>
               </tr>
@@ -47,10 +48,14 @@
                   <th scope="row">{{.Id}}</th>
                   <td>{{.SnapshotName}}</td>
                   <td>{{.OriginalDb}}</td>
+                  <td>{{.SizeGb}}</td>
                   <td>{{.CreatedAt}}</td>
                   <td>
                     <button data-snapshot-id="{{.Id}}" class="btn btn-outline-secondary btn-sm snaphost-restore-button">
                     Restore
+                    </button>
+                    <button data-snapshot-id="{{.Id}}" class="btn btn-danger btn-sm snaphost-drop-button">
+                    Drop
                     </button>
                     <div class="spinner-border text-dark gstellar-restore-spinner" role="status" />
                   </td>
@@ -64,4 +69,5 @@
     </div>
   </body>
   <script src="/assets/snapshotRestore.js"></script>
+  <script src="/assets/snapshotDrop.js"></script>
 </html>
