@@ -29,7 +29,7 @@ func main() {
 					os.Exit(0)
 				}
 				if subCommand == "drop" {
-					snapshot.DropSnapshot()
+					snapshot.DropSnapshotPrepare()
 					os.Exit(0)
 				}
 			} else {

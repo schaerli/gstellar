@@ -29,6 +29,7 @@ func Start() {
 	http.HandleFunc("/snapshots/new", snapshotNew)
 	http.HandleFunc("/snapshots/create", snapshotCreate)
 	http.HandleFunc("/snapshots/restore", snapshotResore)
+	http.HandleFunc("/snapshots/drop", snapshotDrop)
 
 	fs := http.FileServer(http.Dir("./web/assets"))
 	http.Handle("/assets/", http.StripPrefix("/assets", fs))
@@ -95,6 +96,21 @@ func snapshotResore(w http.ResponseWriter, r *http.Request) {
 	}
 
 	msg := snapshot.SnapshotRestore(snapshotId[0])
+	response := restoreJson{Message: msg}
+	json.NewEncoder(w).Encode(response)
+}
+
+func snapshotDrop(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	snapshotId, ok := r.URL.Query()["snapshot_id"]
+
+	if !ok || len(snapshotId[0]) < 1 {
+			log.Println("Url Param 'snapshot_id' is missing")
+			return
+	}
+
+	msg := snapshot.DropSnapshot(snapshotId[0])
 	response := restoreJson{Message: msg}
 	json.NewEncoder(w).Encode(response)
 }

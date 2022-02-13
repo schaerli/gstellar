@@ -228,8 +228,11 @@ func GetSizeOfDb(db *gorm.DB, dbName string) int {
 	return sizegb.Sizegb
 }
 
-func DropSnapshot() {
-	id := chooseSnapshot()
+func DropSnapshotPrepare() {
+	DropSnapshot(chooseSnapshot())
+}
+
+func DropSnapshot(id string) string {
 	db := GetDb()
 	var snapshot Snapshot
 	db.First(&snapshot, id)
@@ -244,6 +247,7 @@ func DropSnapshot() {
 	db.Exec(dropQuery)
 	output := fmt.Sprintf("Snapshot %s dropped database %s", snapshot.SnapshotName, snapshot.SnapshottedDb)
 	fmt.Println(output)
+	return output
 }
 
 func chooseSnapshot() string {

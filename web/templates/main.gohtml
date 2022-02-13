@@ -54,6 +54,9 @@
                     <button data-snapshot-id="{{.Id}}" class="btn btn-outline-secondary btn-sm snaphost-restore-button">
                     Restore
                     </button>
+                    <button data-snapshot-id="{{.Id}}" class="btn btn-danger btn-sm snaphost-drop-button">
+                    Drop
+                    </button>
                     <div class="spinner-border text-dark gstellar-restore-spinner" role="status" />
                   </td>
                 </tr>
@@ -66,4 +69,5 @@
     </div>
   </body>
   <script src="/assets/snapshotRestore.js"></script>
+  <script src="/assets/snapshotDrop.js"></script>
 </html>
