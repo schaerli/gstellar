@@ -9,7 +9,7 @@ Creates and restores snapshots on a postgresql db without pg_restore and pg_dump
 ### Installing
 
 ```bash
-go install github.com/schaerli/gstellar@latest
+go install github.com/schaerli/gstellar@v0.1.0
 ```
 
 ### Executing program
@@ -31,14 +31,17 @@ web
 create
 restore
 list
+drop
 ```
 
 ## Version History
 
-* 0.1
-    * Initial Release
-* 0.2
-    * Webinterface
+* 0.0.1
+  * Initial Release
+* 0.0.2
+  * Web gui
+* 0.1.0
+  * drop database
 
 ## License
 
