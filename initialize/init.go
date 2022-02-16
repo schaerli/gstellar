@@ -25,27 +25,43 @@ func Init() {
 	superUserNameInput := &survey.Input{
 			Message: "Enter PG Superuser name:",
 	}
-	survey.AskOne(superUserNameInput, &superUserName, survey.WithValidator(survey.Required))
+	err_user := survey.AskOne(superUserNameInput, &superUserName, survey.WithValidator(survey.Required))
+	if err_user != nil {
+		handleError(err_user)
+	}
 
 	superUserPass := ""
 	superUserPassInput := &survey.Password{
 			Message: "Enter PG Superuser password:",
 	}
-	survey.AskOne(superUserPassInput, &superUserPass)
+	err_pw := survey.AskOne(superUserPassInput, &superUserPass)
+	if err_pw != nil {
+		handleError(err_pw)
+	}
+
 
 	host := ""
 	hostInput := &survey.Input{
 			Message: "Enter PG Host:",
 			Help: "maybe localhost",
+			Default: "localhost",
 	}
-	survey.AskOne(hostInput, &host)
+	err_host := survey.AskOne(hostInput, &host)
+	if err_host != nil {
+		handleError(err_host)
+	}
+
 
 	port := ""
 	portInput := &survey.Input{
 			Message: "Enter PG Port:",
 			Help: "maybe 5432",
+			Default: "5432",
 	}
-	survey.AskOne(portInput, &port)
+	err_port := survey.AskOne(portInput, &port)
+	if err_port != nil {
+		handleError(err_port)
+	}
 
 	jsonObj := DbCredentials{SuperUserName: superUserName, SuperUserPass: superUserPass, Host: host, Port: port}
 
@@ -113,4 +129,16 @@ func ReadConfig() DbCredentials {
 	}
 
 	return dbCredentials
+}
+
+func handleError(err error) {
+	switch {
+	case err.Error() == "interrupt":
+					fmt.Println("ctrl-C pressed. Exiting.")
+					os.Exit(1)
+	case err != nil:
+					fmt.Printf("%v. Trying again.\n", err)
+	default:
+					break
+	}
 }
