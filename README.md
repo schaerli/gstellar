@@ -44,6 +44,8 @@ drop
   * drop database
 * 0.1.1
   * set default values in init for host and port
+* 0.1.2
+  * fix restore function
 
 ## License
 

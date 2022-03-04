@@ -275,13 +275,15 @@ func chooseSnapshot() string {
 
 	err := survey.AskOne(prompt, &choosenSnapshot, survey.WithValidator(survey.Required))
 	switch {
+	case err == nil:
+		break
 	case err.Error() == "interrupt":
-					fmt.Println("ctrl-C pressed. Exiting.")
-					os.Exit(1)
+		fmt.Println("ctrl-C pressed. Exiting.")
+		os.Exit(1)
 	case err != nil:
-					fmt.Printf("%v. Trying again.\n", err)
+		fmt.Printf("%v. Trying again.\n", err)
 	default:
-					break
+		break
 	}
 
 	r, _ := regexp.Compile(`^\d*`)
