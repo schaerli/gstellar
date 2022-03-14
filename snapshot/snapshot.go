@@ -96,6 +96,7 @@ func SnapshotRestore(snapshotId string) string {
 
 	removeDatabase(db, snapshot.OriginalDb)
 	createSnapshot(db, snapshot.OriginalDb, snapshot.SnapshottedDb, snapshot.OriginalOwner)
+	optimizeRestoredDatabase(snapshot.OriginalDb)
 
 	output := fmt.Sprintf("Snapshot %s on %s restored", snapshot.SnapshotName, snapshot.OriginalDb)
 	fmt.Println(output)
@@ -289,4 +290,23 @@ func chooseSnapshot() string {
 	r, _ := regexp.Compile(`^\d*`)
 
 	return r.FindString(choosenSnapshot)
+}
+
+func optimizeRestoredDatabase(dbName string) {
+	dbCredentials := initialize.ReadConfig()
+
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s", dbCredentials.Host, dbCredentials.SuperUserName, dbCredentials.SuperUserPass, dbName, dbCredentials.Port)
+	newDb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	})
+	if err != nil {
+    panic("failed to connect database")
+  }
+
+	queryTemplate := `
+	REINDEX DATABASE "%s"
+	`
+	dbReindexQuery := fmt.Sprintf(queryTemplate, dbName)
+	newDb.Exec(dbReindexQuery)
+	newDb.Exec("VACUUM(FULL, ANALYZE)")
 }
