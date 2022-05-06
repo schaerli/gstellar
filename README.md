@@ -48,6 +48,8 @@ drop
   * fix restore function
 * 0.1.3
   * optimize restored database
+* 0.1.4
+  * only analyze tables in public schema
 
 ## License
 
