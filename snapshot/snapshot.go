@@ -303,10 +303,19 @@ func optimizeRestoredDatabase(dbName string) {
     panic("failed to connect database")
   }
 
-	queryTemplate := `
-	REINDEX DATABASE "%s"
+	tableTemplateQuery := `
+	select t.relname::varchar AS table_name
+	FROM pg_class t
+	JOIN pg_namespace n ON n.oid = t.relnamespace
+	WHERE t.relkind = 'r' and n.nspname::varchar = 'public'
 	`
-	dbReindexQuery := fmt.Sprintf(queryTemplate, dbName)
-	newDb.Exec(dbReindexQuery)
-	newDb.Exec("VACUUM(FULL, ANALYZE)")
+	var dbTables []string
+	newDb.Raw(tableTemplateQuery).Scan(&dbTables)
+
+	for _, dbTable := range dbTables {
+		analyzeTemplateQuery := "ANALYZE %s"
+		analzyQuery := fmt.Sprintf(analyzeTemplateQuery, dbTable)
+
+		newDb.Exec(analzyQuery)
+	}
 }
